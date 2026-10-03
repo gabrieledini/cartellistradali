@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Indovina il cartello stradale</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --sky:#E6F2FF; --sky2:#CFE6FF; --ink:#1C2430; --ink2:#55637A;
+  --card:#FFFFFF; --road:#3A4150; --line:#F7C600;
+  --ok:#2EB872; --ok-bg:#D9F6E6; --ko:#E5484D; --ko-bg:#FDE1E2;
+  --btn:#FFFFFF; --btn-b:#D7E3F2;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --sky:#141B26; --sky2:#1B2535; --ink:#F2F6FB; --ink2:#A7B4C8;
+    --card:#1F2937; --road:#0F141C; --btn:#273244; --btn-b:#34435A;
+    --ok-bg:#1F4D37; --ko-bg:#5A2528;
+  }
+}
+:root[data-theme="dark"]{
+  --sky:#141B26; --sky2:#1B2535; --ink:#F2F6FB; --ink2:#A7B4C8;
+  --card:#1F2937; --road:#0F141C; --btn:#273244; --btn-b:#34435A;
+  --ok-bg:#1F4D37; --ko-bg:#5A2528;
+}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+html,body{height:100%;margin:0}
+body{
+  font-family:"Fredoka","Nunito","Segoe UI",Arial,sans-serif;
+  color:var(--ink);
+  background:linear-gradient(var(--sky),var(--sky2) 70%);
+  display:flex;flex-direction:column;
+  -webkit-tap-highlight-color:transparent;
+}
+header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 18px 4px;max-width:520px;width:100%;margin:0 auto;
+}
+h1{font-size:1.25rem;font-weight:700;margin:0;letter-spacing:.2px}
+.score{
+  display:flex;align-items:center;gap:8px;
+  background:var(--line);color:#1C2430;border-radius:999px;
+  padding:6px 14px;font-weight:700;font-size:1.05rem;
+  box-shadow:0 3px 0 #C99E00;
+}
+.score small{font-weight:600;font-size:.8rem;opacity:.75}
+main{flex:1;display:flex;flex-direction:column;align-items:center;max-width:520px;width:100%;margin:0 auto;padding:0 16px 24px}
+.progress{width:100%;height:8px;border-radius:99px;background:rgba(0,0,0,.08);margin:8px 0 10px;overflow:hidden}
+.progress i{display:block;height:100%;background:var(--road);width:0;transition:width .3s}
+.stage{width:100%;display:flex;flex-direction:column;align-items:center;margin:6px 0}
+.pole{width:10px;height:44px;margin-top:-6px;background:linear-gradient(90deg,#9AA3B2,#6B7585);border-radius:0 0 3px 3px}
+.sign{
+  position:relative;width:min(48vw,190px);aspect-ratio:1;
+  filter:drop-shadow(0 8px 10px rgba(0,0,0,.18));
+  animation:drop .45s cubic-bezier(.2,.9,.3,1.2) both;
+}
+.sign svg{width:100%;height:100%;display:block}
+@keyframes drop{from{transform:translateY(-18px) scale(.92);opacity:0}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){.sign{animation:none}}
+.question{font-size:1.05rem;color:var(--ink2);font-weight:600;margin:4px 0 12px;text-align:center}
+.answers{display:grid;gap:10px;width:100%}
+.answers button{
+  font:inherit;font-size:1.05rem;font-weight:600;text-align:left;
+  background:var(--btn);color:var(--ink);border:2px solid var(--btn-b);
+  border-radius:16px;padding:14px 16px;min-height:56px;
+  box-shadow:0 3px 0 var(--btn-b);cursor:pointer;
+  transition:transform .08s,background .2s,border-color .2s,box-shadow .2s;
+  display:flex;align-items:center;gap:12px;
+}
+.answers button:active{transform:translateY(2px);box-shadow:0 1px 0 var(--btn-b)}
+.answers button:focus-visible{outline:3px solid #2F80ED;outline-offset:2px}
+.answers button .dot{flex:0 0 28px;height:28px;border-radius:50%;background:var(--sky2);display:grid;place-items:center;font-size:.9rem;font-weight:700;color:var(--ink2)}
+.answers button.ok{background:var(--ok-bg);border-color:var(--ok);box-shadow:0 3px 0 var(--ok)}
+.answers button.ok .dot{background:var(--ok);color:#fff}
+.answers button.ko{background:var(--ko-bg);border-color:var(--ko);box-shadow:0 3px 0 var(--ko)}
+.answers button.ko .dot{background:var(--ko);color:#fff}
+.answers button.glow{animation:glow .9s ease-in-out 2}
+@keyframes glow{0%,100%{box-shadow:0 3px 0 var(--ok)}50%{box-shadow:0 3px 0 var(--ok),0 0 0 6px rgba(46,184,114,.45)}}
+.answers button:disabled{cursor:default}
+.answers button:disabled:not(.ok):not(.ko){opacity:.55}
+.feedback{min-height:40px;margin-top:12px;font-size:1.15rem;font-weight:700;text-align:center}
+.feedback.ok{color:var(--ok)} .feedback.ko{color:var(--ko)}
+.next{
+  margin-top:8px;font:inherit;font-size:1.1rem;font-weight:700;color:#fff;
+  background:var(--road);border:0;border-radius:16px;padding:14px 28px;
+  box-shadow:0 4px 0 #1F2530;cursor:pointer;visibility:hidden;
+}
+.next:active{transform:translateY(2px);box-shadow:0 2px 0 #1F2530}
+.next.show{visibility:visible}
+.road{height:34px;background:var(--road);position:relative;overflow:hidden;flex:0 0 auto}
+.road:before{content:"";position:absolute;left:0;right:0;top:50%;height:4px;margin-top:-2px;
+  background:repeating-linear-gradient(90deg,var(--line) 0 28px,transparent 28px 52px)}
+/* end screen */
+.end{display:none;flex-direction:column;align-items:center;text-align:center;padding:24px 8px;gap:10px}
+.end.show{display:flex}
+.end .big{font-size:3.2rem;font-weight:700;line-height:1}
+.end p{margin:0;color:var(--ink2);font-weight:600;font-size:1.05rem}
+.end .medal{font-size:3rem}
+.hidden{display:none !important}
+</style>
+</head>
+<body>
+<header>
+  <h1>Indovina il cartello</h1>
+  <div class="score"><span id="score">0</span><small id="round">1/10</small></div>
+</header>
+
+<main>
+  <div class="progress"><i id="bar"></i></div>
+
+  <section id="game">
+    <div class="stage"><div class="sign" id="sign"></div><div class="pole"></div></div>
+    <p class="question">Cosa vuol dire questo cartello?</p>
+    <div class="answers" id="answers"></div>
+    <div class="feedback" id="feedback"></div>
+    <div style="text-align:center"><button class="next" id="next">Prossimo cartello</button></div>
+  </section>
+
+  <section class="end" id="end">
+    <div class="medal" id="medal">🏆</div>
+    <div class="big"><span id="finalScore">0</span><span style="font-size:1.4rem;color:var(--ink2)">/10</span></div>
+    <p id="finalMsg">Bravissimo!</p>
+    <button class="next show" id="again">Gioca ancora</button>
+  </section>
+</main>
+<div class="road"></div>
+
+<script>
+/* ---------- Disegno dei cartelli (viewBox 0 0 100 100) ---------- */
+const RED="#D01F2E", BLUE="#0A4EA2", BLK="#111", WHT="#fff", YEL="#F7C600", GRN="#0F7A3E";
+const wrap=inner=>`<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">${inner}</svg>`;
+const tri=inner=>wrap(`<polygon points="50,8 93,86 7,86" fill="${WHT}" stroke="${RED}" stroke-width="9" stroke-linejoin="round"/>${inner}`);
+const triInv=inner=>wrap(`<polygon points="7,14 93,14 50,92" fill="${WHT}" stroke="${RED}" stroke-width="9" stroke-linejoin="round"/>${inner}`);
+const pro=(inner,fill=WHT)=>wrap(`<circle cx="50" cy="50" r="44" fill="${fill}" stroke="${RED}" stroke-width="9"/>${inner}`);
+const obb=inner=>wrap(`<circle cx="50" cy="50" r="47" fill="${WHT}"/><circle cx="50" cy="50" r="44" fill="${BLUE}"/>${inner}`);
+const sq=(inner,fill=BLUE)=>wrap(`<rect x="4" y="4" width="92" height="92" rx="10" fill="${WHT}"/><rect x="8" y="8" width="84" height="84" rx="8" fill="${fill}"/>${inner}`);
+
+// omino che cammina
+const man=(x,y,s,c=BLK)=>`<g transform="translate(${x} ${y}) scale(${s})" fill="none" stroke="${c}" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round">
+ <circle cx="0" cy="-13" r="3.6" fill="${c}" stroke="none"/>
+ <path d="M0 -8 L-1 3 L-7 13 M-1 3 L5 13 M0 -8 L-7 -1 M0 -8 L7 -3"/></g>`;
+// bicicletta
+const bike=(c=BLK)=>`<g fill="none" stroke="${c}" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round">
+ <circle cx="33" cy="63" r="11"/><circle cx="67" cy="63" r="11"/>
+ <path d="M33 63 L45 42 L62 42 L67 63 M45 42 L52 63 L33 63 M62 42 L58 36 L64 36"/></g>`;
+// frecce
+const arrow=(x1,y1,x2,y2,c=BLK,w=7)=>{
+  const dx=x2-x1,dy=y2-y1,L=Math.hypot(dx,dy),ux=dx/L,uy=dy/L,px=-uy,py=ux,h=12,b=9;
+  const bx=x2-ux*h,by=y2-uy*h;
+  return `<line x1="${x1}" y1="${y1}" x2="${bx}" y2="${by}" stroke="${c}" stroke-width="${w}" stroke-linecap="round"/>
+  <polygon points="${x2},${y2} ${bx+px*b},${by+py*b} ${bx-px*b},${by-py*b}" fill="${c}"/>`;
+};
+// rotatoria: tre frecce in cerchio
+const roto=(cx,cy,r,c)=>{
+  let s="";
+  for(let k=0;k<3;k++){
+    const a0=(k*120-90)*Math.PI/180, a1=a0+95*Math.PI/180;
+    const x0=cx+r*Math.cos(a0),y0=cy+r*Math.sin(a0),x1=cx+r*Math.cos(a1),y1=cy+r*Math.sin(a1);
+    s+=`<path d="M${x0} ${y0} A${r} ${r} 0 0 1 ${x1} ${y1}" fill="none" stroke="${c}" stroke-width="5" stroke-linecap="round"/>`;
+    const tx=-Math.sin(a1),ty=Math.cos(a1),nx=Math.cos(a1),ny=Math.sin(a1);
+    s+=`<polygon points="${x1+tx*9},${y1+ty*9} ${x1+nx*7},${y1+ny*7} ${x1-nx*7},${y1-ny*7}" fill="${c}"/>`;
+  }
+  return s;
+};
+const diag=`<line x1="24" y1="76" x2="76" y2="24" stroke="${RED}" stroke-width="8" stroke-linecap="round"/>`;
+const car=(x,c)=>`<rect x="${x}" y="34" width="16" height="34" rx="5" fill="${c}"/><rect x="${x+3}" y="40" width="10" height="5" rx="1" fill="${WHT}"/><rect x="${x+3}" y="59" width="10" height="4" rx="1" fill="${WHT}"/>`;
+
+const SIGNS=[
+ // --- PERICOLO ---
+ {c:"pericolo",t:"Attenzione: curva pericolosa a destra",svg:tri(`<path d="M40 80 V60 Q40 48 52 48 H64" fill="none" stroke="${BLK}" stroke-width="7" stroke-linecap="round"/>`)},
+ {c:"pericolo",t:"Attenzione: curva pericolosa a sinistra",svg:tri(`<path d="M60 80 V60 Q60 48 48 48 H36" fill="none" stroke="${BLK}" stroke-width="7" stroke-linecap="round"/>`)},
+ {c:"pericolo",t:"Attenzione: doppia curva, prima a destra",svg:tri(`<path d="M40 82 V72 Q40 62 50 62 Q60 62 60 52 V44" fill="none" stroke="${BLK}" stroke-width="7" stroke-linecap="round"/>`)},
+ {c:"pericolo",t:"Attenzione: dosso, la strada fa una gobba",svg:tri(`<path d="M28 80 Q50 42 72 80 Z" fill="${BLK}"/>`)},
+ {c:"pericolo",t:"Attenzione: strada deformata, tutta a buche",svg:tri(`<path d="M26 80 Q38 54 50 80 Q62 54 74 80 Z" fill="${BLK}"/>`)},
+ {c:"pericolo",t:"Attenzione: la strada si restringe",svg:tri(`<path d="M35 82 V68 L42 54 V42 M65 82 V68 L58 54 V42" fill="none" stroke="${BLK}" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>`)},
+ {c:"pericolo",t:"Attenzione: discesa pericolosa",svg:tri(`<polygon points="28,50 28,82 72,82" fill="${BLK}"/><text x="58" y="66" font-size="11" font-weight="700" font-family="Arial" fill="${BLK}" text-anchor="middle">10%</text>`)},
+ {c:"pericolo",t:"Attenzione: salita ripida",svg:tri(`<polygon points="72,50 72,82 28,82" fill="${BLK}"/><text x="42" y="66" font-size="11" font-weight="700" font-family="Arial" fill="${BLK}" text-anchor="middle">10%</text>`)},
+ {c:"pericolo",t:"Attenzione: attraversamento pedonale, le persone attraversano",svg:tri(`<g fill="${BLK}"><rect x="30" y="78" width="6" height="6"/><rect x="42" y="78" width="6" height="6"/><rect x="54" y="78" width="6" height="6"/><rect x="66" y="78" width="6" height="6"/></g>${man(50,62,1.5)}`)},
+ {c:"pericolo",t:"Attenzione: bambini! Vicino a una scuola o a un parco",svg:tri(`${man(43,68,1.15)}${man(58,66,1.35)}`)},
+ {c:"pericolo",t:"Attenzione: animali domestici (mucche, pecore) sulla strada",svg:tri(`<g fill="${BLK}"><rect x="30" y="58" width="28" height="14" rx="4"/><path d="M56 60 l10 -5 v12 l-10 -2 z"/><rect x="33" y="70" width="4" height="12"/><rect x="51" y="70" width="4" height="12"/><rect x="40" y="70" width="4" height="12"/><rect x="45" y="70" width="4" height="12"/><circle cx="64" cy="59" r="1.4" fill="${WHT}"/></g>`)},
+ {c:"pericolo",t:"Attenzione: animali selvatici (cervi, cinghiali) sulla strada",svg:tri(`<g fill="none" stroke="${BLK}" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="48" cy="68" rx="14" ry="7" fill="${BLK}"/><path d="M58 64 L66 50 L72 52"/><path d="M66 50 L62 40 M66 50 L71 41 M64 45 L60 44 M68 44 L72 44"/><path d="M38 74 L35 84 M44 74 L43 84 M54 74 L56 84 M60 72 L63 84"/></g>`)},
+ {c:"pericolo",t:"Attenzione: caduta massi dalla montagna",svg:tri(`<g fill="${BLK}"><polygon points="74,84 74,44 62,44 56,84"/><circle cx="46" cy="58" r="4"/><circle cx="38" cy="72" r="3.2"/><circle cx="48" cy="78" r="3.6"/><rect x="26" y="82" width="48" height="2"/></g>`)},
+ {c:"pericolo",t:"Attenzione: lavori in corso, stanno sistemando la strada",svg:tri(`<g fill="none" stroke="${BLK}" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="44" cy="46" r="4.5" fill="${BLK}"/><path d="M44 51 V67 M44 67 L38 82 M44 67 L50 82 M44 56 L58 52 M58 52 L64 70"/><polygon points="59,70 69,70 64,80" fill="${BLK}" stroke="none"/><path d="M26 82 Q36 72 46 82" fill="${BLK}" stroke="none"/></g>`)},
+ {c:"pericolo",t:"Attenzione: semaforo più avanti",svg:tri(`<rect x="40" y="42" width="20" height="42" rx="5" fill="${BLK}"/><circle cx="50" cy="51" r="4.5" fill="${RED}"/><circle cx="50" cy="63" r="4.5" fill="${YEL}"/><circle cx="50" cy="75" r="4.5" fill="#2EB872"/>`)},
+ {c:"pericolo",t:"Attenzione: incrocio, arrivano auto da destra e da sinistra",svg:tri(`<path d="M50 44 V84 M32 66 H68" stroke="${BLK}" stroke-width="7" stroke-linecap="round"/>`)},
+ {c:"pericolo",t:"Attenzione: più avanti c'è una rotatoria",svg:tri(roto(50,64,12,BLK))},
+ {c:"pericolo",t:"Attenzione: passaggio a livello con barriere, passa il treno",svg:tri(`<g fill="${BLK}"><rect x="30" y="56" width="40" height="5"/><rect x="30" y="68" width="40" height="5"/><rect x="34" y="50" width="4.5" height="34"/><rect x="48" y="50" width="4.5" height="34"/><rect x="62" y="50" width="4.5" height="34"/></g>`)},
+ {c:"pericolo",t:"Attenzione: strada scivolosa",svg:tri(`<g fill="${BLK}"><path d="M38 64 l6 -10 h14 l6 10 h4 v8 h-32 v-8 z"/><circle cx="44" cy="74" r="3.5"/><circle cx="60" cy="74" r="3.5"/></g><path d="M32 84 q4 -5 8 0 t8 0 M52 84 q4 -5 8 0 t8 0" fill="none" stroke="${BLK}" stroke-width="2.5" stroke-linecap="round"/>`)},
+ {c:"pericolo",t:"Attenzione: doppio senso di circolazione, le auto vanno in due direzioni",svg:tri(`${arrow(42,82,42,46,BLK,6)}${arrow(58,46,58,82,BLK,6)}`)},
+ {c:"pericolo",t:"Attenzione: altri pericoli!",svg:tri(`<rect x="46" y="44" width="8" height="24" rx="3" fill="${BLK}"/><circle cx="50" cy="78" r="4.5" fill="${BLK}"/>`)},
+ {c:"pericolo",t:"Attenzione: forte vento laterale",svg:tri(`<path d="M36 46 V84" stroke="${BLK}" stroke-width="3.5" stroke-linecap="round"/><polygon points="36,50 70,56 70,66 36,72" fill="${BLK}"/><rect x="47" y="51" width="7" height="20" fill="${WHT}"/><rect x="60" y="54" width="5" height="13" fill="${WHT}"/>`)},
+
+ // --- DIVIETO ---
+ {c:"divieto",t:"Divieto di transito: nessun veicolo può passare",svg:pro("")},
+ {c:"divieto",t:"Senso vietato: non si può entrare da qui",svg:wrap(`<circle cx="50" cy="50" r="46" fill="${WHT}"/><circle cx="50" cy="50" r="43" fill="${RED}"/><rect x="24" y="44" width="52" height="12" rx="2" fill="${WHT}"/>`)},
+ {c:"divieto",t:"Divieto di sorpasso: non si possono superare le altre auto",svg:pro(car(27,RED)+car(57,BLK))},
+ {c:"divieto",t:"Limite di velocità: non si può andare più veloci di 50 km/h",svg:pro(`<text x="50" y="65" font-size="42" font-weight="700" font-family="Arial" fill="${BLK}" text-anchor="middle">50</text>`)},
+ {c:"divieto",t:"Limite di velocità: non si può andare più veloci di 30 km/h",svg:pro(`<text x="50" y="65" font-size="42" font-weight="700" font-family="Arial" fill="${BLK}" text-anchor="middle">30</text>`)},
+ {c:"divieto",t:"Divieto di sosta: non si può parcheggiare",svg:pro(`<line x1="22" y1="22" x2="78" y2="78" stroke="${RED}" stroke-width="8"/>`,BLUE)},
+ {c:"divieto",t:"Divieto di fermata: non ci si può fermare nemmeno un attimo",svg:pro(`<line x1="22" y1="22" x2="78" y2="78" stroke="${RED}" stroke-width="8"/><line x1="78" y1="22" x2="22" y2="78" stroke="${RED}" stroke-width="8"/>`,BLUE)},
+ {c:"divieto",t:"Vietato il transito alle biciclette",svg:pro(bike(BLK))},
+ {c:"divieto",t:"Vietato il transito ai pedoni",svg:pro(man(50,56,1.9))},
+ {c:"divieto",t:"Vietato suonare il clacson",svg:pro(`<path d="M28 44 h14 l16 -12 v36 l-16 -12 h-14 z" fill="${BLK}"/><path d="M64 42 q6 8 0 16 M70 36 q11 14 0 28" fill="none" stroke="${BLK}" stroke-width="3" stroke-linecap="round"/>`)},
+ {c:"divieto",t:"Divieto di svolta a sinistra",svg:pro(`<path d="M58 78 V58 Q58 46 46 46 H42" fill="none" stroke="${BLK}" stroke-width="7" stroke-linecap="round"/><polygon points="42,36 28,46 42,56" fill="${BLK}"/>${diag}`)},
+ {c:"divieto",t:"Divieto di svolta a destra",svg:pro(`<path d="M42 78 V58 Q42 46 54 46 H58" fill="none" stroke="${BLK}" stroke-width="7" stroke-linecap="round"/><polygon points="58,36 72,46 58,56" fill="${BLK}"/>${diag}`)},
+ {c:"divieto",t:"Divieto di inversione a U: non si può tornare indietro",svg:pro(`<path d="M60 78 V54 A10 10 0 0 0 40 54 V62" fill="none" stroke="${BLK}" stroke-width="7" stroke-linecap="round"/><polygon points="30,60 50,60 40,74" fill="${BLK}"/>${diag}`)},
+ {c:"divieto",t:"Stop: fermati e dai la precedenza a tutti",svg:wrap(`<polygon points="31,4 69,4 96,31 96,69 69,96 31,96 4,69 4,31" fill="${RED}" stroke="${WHT}" stroke-width="4"/><text x="50" y="61" font-size="30" font-weight="700" font-family="Arial" fill="${WHT}" text-anchor="middle">STOP</text>`)},
+ {c:"divieto",t:"Dare precedenza: fai passare prima gli altri",svg:triInv("")},
+
+ // --- OBBLIGO ---
+ {c:"obbligo",t:"Direzione obbligatoria: si deve andare dritto",svg:obb(arrow(50,78,50,22,WHT,8))},
+ {c:"obbligo",t:"Direzione obbligatoria: si deve girare a destra",svg:obb(arrow(22,50,78,50,WHT,8))},
+ {c:"obbligo",t:"Direzione obbligatoria: si deve girare a sinistra",svg:obb(arrow(78,50,22,50,WHT,8))},
+ {c:"obbligo",t:"Passaggio obbligatorio a destra: si passa a destra dell'ostacolo",svg:obb(arrow(30,30,72,72,WHT,8))},
+ {c:"obbligo",t:"Rotatoria: si gira in tondo in senso antiorario",svg:obb(roto(50,50,20,WHT))},
+ {c:"obbligo",t:"Pista ciclabile: strada riservata alle biciclette",svg:obb(bike(WHT))},
+ {c:"obbligo",t:"Percorso pedonale: strada riservata a chi va a piedi",svg:obb(man(44,54,1.7,WHT)+man(60,58,1.2,WHT))},
+ {c:"obbligo",t:"Velocità minima: bisogna andare almeno a 30 km/h",svg:obb(`<text x="50" y="65" font-size="42" font-weight="700" font-family="Arial" fill="${WHT}" text-anchor="middle">30</text>`)},
+ {c:"obbligo",t:"Catene da neve obbligatorie: bisogna mettere le catene alle ruote",svg:obb(`<circle cx="50" cy="50" r="22" fill="none" stroke="${WHT}" stroke-width="9"/><circle cx="50" cy="50" r="22" fill="none" stroke="${BLUE}" stroke-width="3" stroke-dasharray="5 6"/>`)},
+
+ // --- INDICAZIONE ---
+ {c:"indicazione",t:"Attraversamento pedonale: qui i pedoni possono attraversare",svg:sq(`<polygon points="50,18 86,82 14,82" fill="${WHT}"/><g fill="${BLK}"><rect x="30" y="76" width="5" height="5"/><rect x="40" y="76" width="5" height="5"/><rect x="50" y="76" width="5" height="5"/><rect x="60" y="76" width="5" height="5"/></g>${man(50,62,1.45)}`)},
+ {c:"indicazione",t:"Parcheggio: qui si possono lasciare le auto",svg:sq(`<text x="50" y="72" font-size="62" font-weight="700" font-family="Arial" fill="${WHT}" text-anchor="middle">P</text>`)},
+ {c:"indicazione",t:"Ospedale: vicino c'è un ospedale, fai silenzio",svg:sq(`<text x="50" y="72" font-size="62" font-weight="700" font-family="Arial" fill="${WHT}" text-anchor="middle">H</text>`)},
+ {c:"indicazione",t:"Senso unico: le auto vanno tutte in una sola direzione",svg:wrap(`<rect x="4" y="28" width="92" height="44" rx="6" fill="${WHT}"/><rect x="8" y="32" width="84" height="36" rx="4" fill="${BLUE}"/>${arrow(20,50,80,50,WHT,9)}`)},
+ {c:"indicazione",t:"Strada senza uscita: la strada finisce, non si va da nessuna parte",svg:sq(`<rect x="46" y="38" width="8" height="42" fill="${WHT}"/><rect x="36" y="30" width="28" height="9" fill="${RED}"/>`)},
+ {c:"indicazione",t:"Diritto di precedenza: su questa strada passi prima tu",svg:wrap(`<polygon points="50,4 96,50 50,96 4,50" fill="${WHT}"/><polygon points="50,17 83,50 50,83 17,50" fill="${YEL}"/>`)},
+ {c:"indicazione",t:"Fine del diritto di precedenza",svg:wrap(`<polygon points="50,4 96,50 50,96 4,50" fill="${WHT}"/><polygon points="50,17 83,50 50,83 17,50" fill="${YEL}"/><g stroke="${BLK}" stroke-width="3.5"><line x1="20" y1="80" x2="80" y2="20"/><line x1="30" y1="86" x2="86" y2="30"/><line x1="14" y1="70" x2="70" y2="14"/></g>`)},
+ {c:"indicazione",t:"Autostrada: inizia una strada veloce con tante corsie",svg:sq(`<g fill="none" stroke="${WHT}" stroke-width="5" stroke-linecap="round"><path d="M34 84 L44 38 M66 84 L56 38"/></g><rect x="26" y="56" width="48" height="7" rx="2" fill="${WHT}"/><rect x="30" y="63" width="5" height="12" fill="${WHT}"/><rect x="65" y="63" width="5" height="12" fill="${WHT}"/>`,GRN)},
+ {c:"indicazione",t:"Pronto soccorso: qui ti curano se ti fai male",svg:sq(`<rect x="22" y="22" width="56" height="56" rx="4" fill="${WHT}"/><rect x="44" y="30" width="12" height="40" fill="${RED}"/><rect x="30" y="44" width="40" height="12" fill="${RED}"/>`)},
+ {c:"indicazione",t:"Distributore di benzina: qui si fa il pieno",svg:sq(`<rect x="32" y="26" width="24" height="48" rx="3" fill="${WHT}"/><rect x="37" y="32" width="14" height="12" rx="1" fill="${BLUE}"/><rect x="28" y="72" width="32" height="6" rx="2" fill="${WHT}"/><path d="M58 38 h8 v28 a4 4 0 0 1 -8 0" fill="none" stroke="${WHT}" stroke-width="4"/>`)},
+ {c:"indicazione",t:"Fermata dell'autobus",svg:sq(`<rect x="24" y="30" width="52" height="34" rx="6" fill="${WHT}"/><rect x="30" y="36" width="12" height="12" rx="2" fill="${BLUE}"/><rect x="46" y="36" width="12" height="12" rx="2" fill="${BLUE}"/><rect x="62" y="36" width="8" height="12" rx="2" fill="${BLUE}"/><circle cx="34" cy="68" r="5" fill="${WHT}"/><circle cx="66" cy="68" r="5" fill="${WHT}"/>`)},
+ {c:"indicazione",t:"Zona residenziale: qui vivono persone, vai piano e stai attento ai bambini",svg:sq(`<path d="M22 54 L36 40 L50 54 V70 H22 Z" fill="${WHT}"/><rect x="31" y="58" width="8" height="12" fill="${BLUE}"/>${man(66,60,1.2,WHT)}<circle cx="60" cy="72" r="3" fill="${WHT}"/><circle cx="72" cy="72" r="3" fill="${WHT}"/>`)},
+];
+
+/* ---------- Gioco ---------- */
+const ROUNDS=10, N_OPT=4;
+let order=[], round=0, score=0, locked=false;
+const $=id=>document.getElementById(id);
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+const letters=["A","B","C","D"];
+
+function start(){
+  order=shuffle(SIGNS.map((_,i)=>i)).slice(0,ROUNDS);
+  round=0;score=0;
+  $("score").textContent="0";
+  $("end").classList.remove("show");$("game").classList.remove("hidden");
+  show();
+}
+function show(){
+  locked=false;
+  const idx=order[round], cur=SIGNS[idx];
+  $("round").textContent=`${round+1}/${ROUNDS}`;
+  $("bar").style.width=`${(round/ROUNDS)*100}%`;
+  const sign=$("sign");sign.innerHTML=cur.svg;
+  sign.style.animation="none";void sign.offsetWidth;sign.style.animation="";
+  // distrattori: preferisce la stessa categoria, poi gli altri
+  const same=shuffle(SIGNS.filter((s,i)=>i!==idx&&s.c===cur.c));
+  const other=shuffle(SIGNS.filter((s,i)=>i!==idx&&s.c!==cur.c));
+  const pool=[...same.slice(0,2),...other].slice(0,N_OPT-1);
+  const opts=shuffle([cur,...pool]);
+  const box=$("answers");box.innerHTML="";
+  opts.forEach((o,i)=>{
+    const b=document.createElement("button");
+    b.innerHTML=`<span class="dot">${letters[i]}</span><span>${o.t}</span>`;
+    b.onclick=()=>answer(b,o===cur,box);
+    box.appendChild(b);
+  });
+  $("feedback").textContent="";$("feedback").className="feedback";
+  $("next").classList.remove("show");
+}
+function answer(btn,right,box){
+  if(locked)return;locked=true;
+  [...box.children].forEach(b=>b.disabled=true);
+  if(right){
+    btn.classList.add("ok");score++;$("score").textContent=score;
+    $("feedback").textContent=shuffle(["Bravo! 🎉","Giusto! ⭐","Esatto! 👏","Perfetto! 🚗"])[0];
+    $("feedback").className="feedback ok";
+    if(navigator.vibrate)navigator.vibrate(30);
+  }else{
+    btn.classList.add("ko");
+    const cur=SIGNS[order[round]];
+    [...box.children].find(b=>b.textContent.includes(cur.t)).classList.add("ok","glow");
+    $("feedback").textContent="Ops! Quello giusto è in verde";
+    $("feedback").className="feedback ko";
+    if(navigator.vibrate)navigator.vibrate([40,40,40]);
+  }
+  $("next").textContent= round+1<ROUNDS ? "Prossimo cartello" : "Vedi il risultato";
+  $("next").classList.add("show");
+}
+$("next").onclick=()=>{
+  round++;
+  if(round<ROUNDS){show();return;}
+  $("bar").style.width="100%";
+  $("game").classList.add("hidden");
+  $("finalScore").textContent=score;
+  const m=$("medal"),p=$("finalMsg");
+  if(score===ROUNDS){m.textContent="🏆";p.textContent="Perfetto! Conosci tutti i cartelli!";}
+  else if(score>=7){m.textContent="🥇";p.textContent="Bravissimo! Sei quasi un vigile!";}
+  else if(score>=4){m.textContent="🥈";p.textContent="Bene! Ancora un po' di allenamento.";}
+  else{m.textContent="🚦";p.textContent="Riprova, imparerai in fretta!";}
+  $("end").classList.add("show");
+};
+$("again").onclick=start;
+start();
+</script>
+</body>
+</html>
